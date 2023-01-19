@@ -1,9 +1,32 @@
-export default function MotiNoteRoute(){
-  return(
+import { LoaderArgs } from '@remix-run/node';
+import { useLoaderData } from '@remix-run/react';
+import { json } from 'react-router';
+import { Link } from 'react-router-dom';
+import { db } from '~/utils/db.server';
+
+export const loader = async ({ params }: LoaderArgs) => {
+  const motiNote = await db.motiNote.findUnique({
+    where: { id: params.motinoteId },
+  });
+
+  if (!motiNote) {
+    throw new Error('No motinote found!');
+  }
+
+  return json({ motiNote });
+};
+
+export default function MotiNoteRoute() {
+  const data = useLoaderData<typeof loader>();
+  const name = data.motiNote.name;
+
+  return (
     <div>
-    <p>
-      'Do, or do not. There is no try' <span>-yoda</span>
-    </p>
-  </div>
-  )
+      <p>
+        {data.motiNote.note}
+        <span>{'  - ' + name}</span>
+      </p>
+      <Link to="."> This {data.motiNote.name} quote permalink! </Link>
+    </div>
+  );
 }
