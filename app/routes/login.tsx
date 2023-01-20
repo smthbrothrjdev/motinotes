@@ -1,14 +1,52 @@
-import type { LinksFunction } from '@remix-run/node';
-import { Link, useSearchParams } from '@remix-run/react';
+import type { ActionArgs, LinksFunction } from '@remix-run/node';
+import { Link, useSearchParams, useActionData } from '@remix-run/react';
 import stylesUrl from '~/styles/login.css';
+import { badRequest } from '~/utils/request.server';
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesUrl },
 ];
 
+function validateUserName(username: string) {
+  if (typeof username !== 'string' || username.length < 3) {
+    return 'Username must be at least 3 characters long!';
+  }
+}
+
+function validatePassword(password: string) {
+  if (typeof password !== 'string' || password.length < 6) {
+    return 'Password must be minimum of 6 characters!';
+  }
+}
+
+function validateUrl(url: string) {
+  let urls = ['/motinotes', '/', 'https://remix.run'];
+  if (urls.includes(url)) {
+    return url;
+  }
+  return '/motinotes';
+}
+export const action = async ({request} : ActionArgs) =>{
+  const form = await request.formData()
+  const username = form.get("username")
+  const password = form.get("password")
+  const loginType = form.get("loginType") || "/motinotes"
+  if (
+    typeof loginType !== "string" ||
+    typeof username !== "string" ||
+    typeof password !== "string" ||
+    typeof redirectTo !== "string"
+  ) {
+    return badRequest({
+      fieldErrors: null,
+      fields: null,
+      formError: `Form not submitted correctly.`,
+    });
+}}
+
+
 export default function login() {
   const [searchParams] = useSearchParams();
-
   return (
     <div className="container">
       <div className="content" data-light="">
