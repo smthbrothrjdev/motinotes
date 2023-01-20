@@ -2,9 +2,19 @@ import { PrismaClient } from '@prisma/client';
 const db = new PrismaClient();
 
 async function seed() {
+  const smthbrothrj = await db.user.create({
+    data: {
+      username: 'smthbrothrj',
+      // this is a hashed version of "twixrox"
+      passwordHash:
+        '$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u',
+    },
+  });
+
   await Promise.all(
     getNotes().map((motiNote) => {
-      return db.motiNote.create({ data: motiNote });
+      const data = { motiUserId: smthbrothrj.id, ...motiNote };
+      return db.motiNote.create({ data });
     })
   );
 }
@@ -12,7 +22,6 @@ async function seed() {
 seed();
 
 function getNotes() {
-
   return [
     {
       note: `Never trust a computer you can't throw out a window.`,
