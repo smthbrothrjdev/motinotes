@@ -4,6 +4,7 @@ import { Link, useSearchParams, useActionData } from '@remix-run/react';
 import stylesUrl from '~/styles/login.css';
 import { db } from '~/utils/db.server';
 import { badRequest } from '~/utils/request.server';
+import { createUserSession, login as authLogin } from '~/utils/session.server';
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesUrl },
@@ -33,7 +34,7 @@ export const action = async ({ request }: ActionArgs) => {
   const loginType = form.get('loginType');
   const username = form.get('username');
   const password = form.get('password');
-  const redirectTo = form.get('loginType') || '/motinotes';
+  const redirectTo = validateUrl(form.get('redirectTo')  || '/motinotes');
   if (
     typeof loginType !== 'string' ||
     typeof username !== 'string' ||
@@ -58,11 +59,17 @@ export const action = async ({ request }: ActionArgs) => {
 
   switch (loginType) {
     case 'login':
-      return badRequest({
-        fieldErrors: null,
-        fields,
-        formError: 'feature not ready yet',
-      });
+      const user = await authLogin({ username, password });
+      // server side code so console log runs on server not client
+      console.log(user);
+      if (!user) {
+        return badRequest({
+          fieldErrors: null,
+          fields,
+          formError: 'Username or Password is incorrect!',
+        });
+      }
+      return createUserSession(user.id, redirectTo);
 
     case 'register':
       const userExists = await db.user.findFirst({ where: { username } });
