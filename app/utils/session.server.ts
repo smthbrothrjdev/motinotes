@@ -17,7 +17,8 @@ if (!sessionSecretz) {
 const storage = createCookieSessionStorage({
   cookie: {
     name: 'motiNote_session',
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
+    //secure: process.env.NODE_ENV === 'production',
     secrets: [sessionSecretz],
     sameSite: 'lax',
     path: '/',
@@ -36,12 +37,36 @@ export async function login({ username, password }: LoginDeets) {
   return { id: user.id, username };
 }
 
-export async function createUserSession(userId: string, route: string) {
+export async function createUserSession(userId: string, redirectTo: string) {
   const session = await storage.getSession();
   session.set('userId', userId);
-  return redirect(route, {
+  return redirect(redirectTo, {
     headers: {
       'Set-Cookie': await storage.commitSession(session),
     },
   });
+}
+
+function getUserSession(request: Request) {
+  return storage.getSession(request.headers.get('Cookie'));
+}
+
+export async function getUserId(request: Request) {
+  const session = await getUserSession(request);
+  const userId = session.get('userId');
+  if (!userId || typeof userId !== 'string') return null;
+  return userId;
+}
+
+export async function requireUserId(
+  request: Request,
+  redirectTo: string = new URL(request.url).pathname
+) {
+  const session = await getUserSession(request);
+  const userId = session.get('userId');
+  if (!userId || typeof userId !== 'string') {
+    const searchParams = new URLSearchParams([['redirectTo', redirectTo]]);
+    throw redirect(`/login?${searchParams}`);
+  }
+  return userId;
 }

@@ -1,8 +1,9 @@
 import { ActionArgs } from '@remix-run/node';
-import { json, redirect } from 'react-router';
+import { json, redirect } from '@remix-run/node';
 import { db } from '~/utils/db.server';
 import { useActionData } from '@remix-run/react';
 import { badRequest } from '~/utils/request.server';
+import { requireUserId } from '~/utils/session.server';
 
 function validateMotiNoteNote(note: string) {
   if (note.length < 10) {
@@ -16,6 +17,7 @@ function validateMotiNoteName(name: string) {
   }
 }
 export const action = async ({ request }: ActionArgs) => {
+  const userId = await requireUserId(request);
   const form = await request.formData();
   const note = form.get('note');
   const name = form.get('name');
@@ -43,7 +45,7 @@ export const action = async ({ request }: ActionArgs) => {
   }
 
   const newNote = await db.motiNote.create({
-    data: fields,
+    data: { ...fields, motiUserId: userId },
   });
   return redirect(`/motinotes/${newNote.id}`);
 };
@@ -60,8 +62,8 @@ export default function NewMotinoteRoute() {
             Note:{' '}
             <textarea
               name="note"
-              defaultValue={actionData?.fields.note}
-              aria-invalid={Boolean(actionData?.fieldErrors.note) || undefined}
+              defaultValue={actionData?.fields?.note}
+              aria-invalid={Boolean(actionData?.fieldErrors?.note) || undefined}
               aria-errormessage={
                 actionData?.fieldErrors?.note ? 'note-error' : undefined
               }
@@ -79,8 +81,8 @@ export default function NewMotinoteRoute() {
             <input
               type="text"
               name="name"
-              defaultValue={actionData?.fields.name}
-              aria-invalid={Boolean(actionData?.fieldErrors.name) || undefined}
+              defaultValue={actionData?.fields?.name}
+              aria-invalid={Boolean(actionData?.fieldErrors?.name) || undefined}
               aria-errormessage={
                 actionData?.fieldErrors?.name ? 'name-error' : undefined
               }
