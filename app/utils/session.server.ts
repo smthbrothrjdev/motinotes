@@ -37,6 +37,17 @@ export async function login({ username, password }: LoginDeets) {
   return { id: user.id, username };
 }
 
+export async function register({username, password}: LoginDeets){
+  if (!username || !password) return null
+  const passwordHash = await bcrypt.hash(password,10)
+   const user = await db.user.create({
+    data:{
+      username, passwordHash
+    }
+   })
+ return {id: user.id, username}
+}
+
 export async function createUserSession(userId: string, redirectTo: string) {
   const session = await storage.getSession();
   session.set('userId', userId);
