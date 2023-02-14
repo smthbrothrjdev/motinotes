@@ -1,5 +1,5 @@
 import { LoaderArgs } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { useCatch, useLoaderData } from '@remix-run/react';
 import { json, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import { db } from '~/utils/db.server';
@@ -10,7 +10,7 @@ export const loader = async ({ params }: LoaderArgs) => {
   });
 
   if (!motiNote) {
-    throw new Error('No motinote found!');
+    throw new Response('No motinote found!', {status:404});
   }
 
   return json({ motiNote });
@@ -35,4 +35,17 @@ export function ErrorBoundary() {
   return (
     <div className="error-container">{`There was an error loading joke by the id ${motinoteId}. Sorry.`}</div>
   );
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+  const params = useParams();
+  if (caught.status === 404) {
+    return (
+      <div className="error-container">
+        Huh? What the heck is "{params.motinoteId}"?
+      </div>
+    );
+  }
+  throw new Error(`Unhandled error: ${caught.status}`);
 }

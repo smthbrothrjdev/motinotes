@@ -1,9 +1,9 @@
-import { ActionArgs } from '@remix-run/node';
+import { ActionArgs, LoaderArgs } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { db } from '~/utils/db.server';
-import { useActionData } from '@remix-run/react';
+import { Link, useActionData, useCatch } from '@remix-run/react';
 import { badRequest } from '~/utils/request.server';
-import { requireUserId } from '~/utils/session.server';
+import { getUserId, requireUserId } from '~/utils/session.server';
 
 function validateMotiNoteNote(note: string) {
   if (note.length < 10) {
@@ -16,12 +16,19 @@ function validateMotiNoteName(name: string) {
     return 'that name is too short!';
   }
 }
+
+export const loader = async ({ request }: LoaderArgs) => {
+  const userId = await getUserId(request);
+  if (!userId) {
+    throw new Response('Unauthorized', { status: 401 });
+  }
+  return json({});
+};
 export const action = async ({ request }: ActionArgs) => {
   const userId = await requireUserId(request);
   const form = await request.formData();
   const note = form.get('note');
   const name = form.get('name');
- 
 
   if (typeof note !== 'string' || typeof name !== 'string') {
     return badRequest({
@@ -110,4 +117,17 @@ export function ErrorBoundary() {
       Something unexpected went wrong. Sorry about that.
     </div>
   );
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+
+  if (caught.status === 401) {
+    return (
+      <div className="error-container">
+        <p>You must be logged in to create a motiNote!</p>
+        <Link to="/login">Login</Link>
+      </div>
+    );
+  }
 }

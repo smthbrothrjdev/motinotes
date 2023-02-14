@@ -1,5 +1,5 @@
 import { json } from '@remix-run/node';
-import { Link, useLoaderData } from '@remix-run/react';
+import { Link, useCatch, useLoaderData } from '@remix-run/react';
 import { db } from '~/utils/db.server';
 
 export const loader = async () => {
@@ -9,6 +9,9 @@ export const loader = async () => {
     take: 1,
     skip: randomRowNumber,
   });
+  if (!motiNote){
+    throw new Response("Cant find a random motiNote. Sorry!", {status:404})
+  }
   return json({ motiNote });
 };
 
@@ -30,5 +33,19 @@ export function ErrorBoundary() {
       Something unexpected happened. Trained monkeys will be sent to handle the
       issue.
     </div>
+  );
+}
+export function CatchBoundary() {
+  const caught = useCatch();
+
+  if (caught.status === 404) {
+    return (
+      <div className="error-container">
+        There are no motiNotes to display.
+      </div>
+    );
+  }
+  throw new Error(
+    `Unexpected caught response with status: ${caught.status}`
   );
 }
