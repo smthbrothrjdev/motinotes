@@ -4,7 +4,11 @@ import { Link, useSearchParams, useActionData } from '@remix-run/react';
 import stylesUrl from '~/styles/login.css';
 import { db } from '~/utils/db.server';
 import { badRequest } from '~/utils/request.server';
-import { createUserSession, login as authLogin } from '~/utils/session.server';
+import {
+  createUserSession,
+  login as authLogin,
+  register,
+} from '~/utils/session.server';
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesUrl },
@@ -58,7 +62,7 @@ export const action = async ({ request }: ActionArgs) => {
   }
 
   switch (loginType) {
-    case 'login':
+    case 'login': {
       const user = await authLogin({ username, password });
       // server side code so console log runs on server not client
       console.log(user);
@@ -70,8 +74,8 @@ export const action = async ({ request }: ActionArgs) => {
         });
       }
       return createUserSession(user.id, redirectTo);
-
-    case 'register':
+    }
+    case 'register': {
       const userExists = await db.user.findFirst({ where: { username } });
       if (userExists) {
         return badRequest({
@@ -81,13 +85,18 @@ export const action = async ({ request }: ActionArgs) => {
         });
       }
       // create the user
-      // create their session and redirect to /jokes
-      return badRequest({
-        fieldErrors: null,
-        fields,
-        formError: 'we can do that yet! hold on soon  ',
-      });
 
+      // create their session and redirect to /jokes
+      const user = await register({ username, password });
+      if (!user) {
+        return badRequest({
+          fieldErrors: null,
+          fields,
+          formError: 'Something went wrong trying to create a new user.',
+        });
+      }
+      return createUserSession(user.id, redirectTo);
+    }
     default:
       return badRequest({
         fieldErrors: null,
