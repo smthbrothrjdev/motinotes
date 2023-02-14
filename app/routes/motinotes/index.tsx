@@ -24,3 +24,11 @@ export default function MotiNotesIndexRoute() {
     </div>
   );
 }
+export function ErrorBoundary() {
+  return (
+    <div className="error-container">
+      Something unexpected happened. Trained monkeys will be sent to handle the
+      issue.
+    </div>
+  );
+}

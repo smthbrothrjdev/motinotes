@@ -21,6 +21,7 @@ export const action = async ({ request }: ActionArgs) => {
   const form = await request.formData();
   const note = form.get('note');
   const name = form.get('name');
+ 
 
   if (typeof note !== 'string' || typeof name !== 'string') {
     return badRequest({
@@ -52,7 +53,6 @@ export const action = async ({ request }: ActionArgs) => {
 
 export default function NewMotinoteRoute() {
   const actionData = useActionData<typeof action>();
-
   return (
     <div>
       <p>Add your own Motinote</p>
@@ -100,6 +100,14 @@ export default function NewMotinoteRoute() {
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+export function ErrorBoundary() {
+  return (
+    <div className="error-container">
+      Something unexpected went wrong. Sorry about that.
     </div>
   );
 }

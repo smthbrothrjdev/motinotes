@@ -1,6 +1,6 @@
 import { LoaderArgs } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
-import { json } from 'react-router';
+import { json, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import { db } from '~/utils/db.server';
 
@@ -19,7 +19,6 @@ export const loader = async ({ params }: LoaderArgs) => {
 export default function MotiNoteRoute() {
   const data = useLoaderData<typeof loader>();
   const name = data.motiNote.name;
-
   return (
     <div>
       <p>
@@ -28,5 +27,12 @@ export default function MotiNoteRoute() {
       </p>
       <Link to="."> This {data.motiNote.name} quote permalink! </Link>
     </div>
+  );
+}
+
+export function ErrorBoundary() {
+  const { motinoteId } = useParams();
+  return (
+    <div className="error-container">{`There was an error loading joke by the id ${motinoteId}. Sorry.`}</div>
   );
 }
