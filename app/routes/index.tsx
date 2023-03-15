@@ -11,7 +11,7 @@ export default function IndexRoute() {
     <div className="container">
       <div className="content">
         <h1>
-          atis <span>MotiNote!</span>
+          stormborne <span>MotiNote!</span>
         </h1>
         <nav>
           <ul>
